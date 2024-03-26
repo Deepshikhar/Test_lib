@@ -7,9 +7,6 @@ from unstructured.partition.html import partition_html
 import re
 from unstructured.cleaners.core import clean_bullets
 
-
-
-
 class Stepni():
 
     def __init__(self):
