@@ -19,7 +19,6 @@ class Stepni():
 
 inp = "[1] ● An excellent point! I love Morse Code! ●●● Geolocated combat footage has confirmed Russian gains in the Dvorichne area northwest of Svatove."
 
+func = Stepni()
 
-fun = Stepni()
-
-print(fun.cleanIt(inp))
+print(func.cleanIt(inp))
