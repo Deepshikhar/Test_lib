@@ -16,7 +16,6 @@ class Stepni():
         out = clean(x, bullets=True, lowercase=True,extra_whitespace=True, dashes=True,trailing_punctuation=True)
         out = clean_bullets(out)
         return out
-    
 
 inp = "[1] ● An excellent point! I love Morse Code! ●●● Geolocated combat footage has confirmed Russian gains in the Dvorichne area northwest of Svatove."
 
