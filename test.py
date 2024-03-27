@@ -26,7 +26,7 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from collections import Counter
 
-class Stepni():
+class TextCleaner():
 
     def __init__(self):
         pass
@@ -133,10 +133,10 @@ was walking down the lane.
 At the end of the lane, the
 
 fox met a bear. """
-processor = Stepni()
+processor = TextCleaner()
 processed_text = processor.unstructured_text(text)
 print(processed_text)
 
-processor = Stepni()
+processor = TextCleaner()
 processed_text = processor.preprocess_text(processed_text)
 print(processed_text)
