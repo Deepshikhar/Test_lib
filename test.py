@@ -1,11 +1,22 @@
-from unstructured.cleaners.core import clean
-from unstructured.cleaners.core import replace_unicode_quotes
-from unstructured.documents.elements import Text
-from unstructured.cleaners.core import bytes_string_to_string
-from unstructured.cleaners.core import bytes_string_to_string
+from unstructured.cleaners.core import (
+    replace_unicode_quotes,
+    bytes_string_to_string,
+    clean,
+    clean_bullets,
+    clean_dashes,
+    clean_extra_whitespace,
+    clean_non_ascii_chars,
+    clean_ordered_bullets,
+    clean_postfix,
+    clean_prefix,
+    clean_trailing_punctuation,
+    group_broken_paragraphs,
+    remove_punctuation,
+    replace_unicode_quotes,
+)
 from unstructured.partition.html import partition_html
-import re
-from unstructured.cleaners.core import clean_bullets
+from unstructured.cleaners.translate import translate_text
+from unstructured.documents.elements import Text
 import re
 import string
 import html
@@ -15,10 +26,6 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from collections import Counter
 
-stemmer = nltk.stem.PorterStemmer()
-w_tokenizer = nltk.tokenize.WhitespaceTokenizer()
-lemmatizer = nltk.stem.WordNetLemmatizer()
-
 class Stepni():
 
     def __init__(self):
@@ -26,6 +33,9 @@ class Stepni():
 
     def preprocess_text(self, x:str):
         # Lowercase
+        stemmer = nltk.stem.PorterStemmer()
+        w_tokenizer = nltk.tokenize.WhitespaceTokenizer()
+        lemmatizer = nltk.stem.WordNetLemmatizer()
         x = x.lower()
 
         # Remove punctuation
@@ -46,7 +56,11 @@ class Stepni():
 
         # Remove duplicate words
         words = x.split()
-        x = ' '.join(sorted(set(words), key=words.index))
+        for i in range(0, len(words)):
+            words[i] = ''.join(words[i])
+        UniqW = Counter(words)
+        x = ' '.join(UniqW.keys())
+        # x = ' '.join(sorted(set(words), key=words.index))
 
         # Remove repeating words
         x = re.sub(r"\b(\w+)(?:\W\1\b)+", r"\1", x, flags=re.IGNORECASE)
@@ -72,28 +86,57 @@ class Stepni():
         # Remove stopwords
         x = ' '.join([word for word in x.split() if word not in set(stopwords.words('english'))])
 
+        # Stemming
+        stemmer = nltk.stem.PorterStemmer()
+        x = ' '.join([stemmer.stem(w) for w in w_tokenizer.tokenize(x)])
+
         # Lemmatize
         lemmatizer = nltk.stem.WordNetLemmatizer()
         w_tokenizer = nltk.tokenize.WhitespaceTokenizer()
         x = ' '.join([lemmatizer.lemmatize(w) for w in w_tokenizer.tokenize(x)])
 
-        # Stemming
-        stemmer = nltk.stem.PorterStemmer()
-        x = ' '.join([stemmer.stem(w) for w in w_tokenizer.tokenize(x)])
-
         return x
 
+    @staticmethod
+    def unstructured_text(text, translation_source=None, translation_target=None):
+        # Creating an element from the text
+        element = Text(text)
 
-    def cleanIt(self, x:str):
-        out = self.preprocess_text(x)
-        out = clean(out, bullets=True, lowercase=True,extra_whitespace=True, dashes=True,trailing_punctuation=True)
-        out = clean_bullets(out)
-        return out
+        # Applying all available operations
+        element.apply(replace_unicode_quotes)
+        # element.apply(bytes_string_to_string)
+        element.apply(clean)
+        element.apply(clean_bullets)
+        element.apply(clean_dashes)
+        element.apply(clean_extra_whitespace)
+        element.apply(clean_non_ascii_chars)
+        element.apply(clean_ordered_bullets)
+        element.apply(lambda text: clean_postfix(text, r"(END|STOP)", ignore_case=True))
+        element.apply(lambda text: clean_prefix(text, r"(SUMMARY|DESCRIPTION):", ignore_case=True))
+        element.apply(clean_trailing_punctuation)
+        element.text = group_broken_paragraphs(element.text)
+        element.text = remove_punctuation(element.text)
+        elements = partition_html(text=element.text)
+        if elements:
+            element = elements[0]  # Considering only the first element
+        # if translation_source and translation_target:
+        #     element.text = translate_text(element.text, translation_source, translation_target)
 
-# inp = "[1] ● An excellent point! I love Morse Code! ●●● Geolocated combat footage has confirmed Russian gains in the Dvorichne area northwest of Svatove."
+        return element.text
+    
 
+# Example usage:
+text = """1.1 This is a very important point
+ ●The big brown fox
+was walking down the lane.
 
-inp= "Hello World! 🌎 This is a sample text for testing the data preprocessing code. It contains some punctuation, emojis 😊, and repeated words. Let's see how the code handles them. Feel free to add or modify this text for additional testing."
-func = Stepni()
+At the end of the lane, the
 
-print(func.cleanIt(inp))
+fox met a bear. """
+processor = Stepni()
+processed_text = processor.unstructured_text(text)
+print(processed_text)
+
+processor = Stepni()
+processed_text = processor.preprocess_text(processed_text)
+print(processed_text)
