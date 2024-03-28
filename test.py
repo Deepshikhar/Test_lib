@@ -26,20 +26,22 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from collections import Counter
 
+
+
 class TextCleaner():
 
     def __init__(self):
         pass
 
-    def preprocess_text(self, x:str):
+    def preprocess_text(self, text:str):
         # Lowercase
         stemmer = nltk.stem.PorterStemmer()
         w_tokenizer = nltk.tokenize.WhitespaceTokenizer()
         lemmatizer = nltk.stem.WordNetLemmatizer()
-        x = x.lower()
+        text = text.lower()
 
         # Remove punctuation
-        x = ''.join(ch for ch in x if ch not in set(string.punctuation))
+        text = ''.join(ch for ch in text if ch not in set(string.punctuation))
 
         # Remove emojis
         regrex_pattern = re.compile(
@@ -52,50 +54,50 @@ class TextCleaner():
             u"\U000024C2-\U0001F251"
             "]+",
             flags=re.UNICODE)
-        x = regrex_pattern.sub(r'', x)
+        text = regrex_pattern.sub(r'', text)
 
         # Remove duplicate words
-        words = x.split()
+        words = text.split()
         for i in range(0, len(words)):
             words[i] = ''.join(words[i])
         UniqW = Counter(words)
-        x = ' '.join(UniqW.keys())
-        # x = ' '.join(sorted(set(words), key=words.index))
+        text = ' '.join(UniqW.keys())
+        # text = ' '.join(sorted(set(words), key=words.index))
 
         # Remove repeating words
-        x = re.sub(r"\b(\w+)(?:\W\1\b)+", r"\1", x, flags=re.IGNORECASE)
+        text = re.sub(r"\b(\w+)(?:\W\1\b)+", r"\1", text, flags=re.IGNORECASE)
 
         # Remove accents
-        x = unidecode.unidecode(x)
+        text = unidecode.unidecode(text)
 
         # Remove non-alphanumeric characters
-        x = re.sub(r'\W+', ' ', x)
+        text = re.sub(r'\W+', ' ', text)
 
         # Remove non-ASCII characters
-        x = re.sub(r'[^\x00-\x7F]', ' ', x)
+        text = re.sub(r'[^\x00-\x7F]', ' ', text)
 
         # Remove emails
-        x = re.sub(r"\S*@\S*\s?", "", x)
+        text = re.sub(r"\S*@\S*\s?", "", text)
 
         # Remove HTML tags
-        x = re.sub('<.*?>', '', x)
+        text = re.sub('<.*?>', '', text)
 
         # Remove URLs
-        x = re.sub(r"http\S+|www.\S+", "", x)
+        text = re.sub(r"http\S+|www.\S+", "", text)
 
         # Remove stopwords
-        x = ' '.join([word for word in x.split() if word not in set(stopwords.words('english'))])
+        text = ' '.join([word for word in text.split() if word not in set(stopwords.words('english'))])
 
         # Stemming
         stemmer = nltk.stem.PorterStemmer()
-        x = ' '.join([stemmer.stem(w) for w in w_tokenizer.tokenize(x)])
+        text = ' '.join([stemmer.stem(w) for w in w_tokenizer.tokenize(text)])
 
         # Lemmatize
         lemmatizer = nltk.stem.WordNetLemmatizer()
         w_tokenizer = nltk.tokenize.WhitespaceTokenizer()
-        x = ' '.join([lemmatizer.lemmatize(w) for w in w_tokenizer.tokenize(x)])
+        text = ' '.join([lemmatizer.lemmatize(w) for w in w_tokenizer.tokenize(text)])
 
-        return x
+        return text
 
     @staticmethod
     def unstructured_text(text, translation_source=None, translation_target=None):
@@ -123,6 +125,8 @@ class TextCleaner():
         #     element.text = translate_text(element.text, translation_source, translation_target)
 
         return element.text
+
+    
     
 
 # Example usage:
@@ -133,6 +137,7 @@ was walking down the lane.
 At the end of the lane, the
 
 fox met a bear. """
+
 processor = TextCleaner()
 processed_text = processor.unstructured_text(text)
 print(processed_text)
@@ -140,3 +145,4 @@ print(processed_text)
 processor = TextCleaner()
 processed_text = processor.preprocess_text(processed_text)
 print(processed_text)
+
